@@ -1,21 +1,19 @@
-import { Schema, model } from "mongoose";
-import { IUser } from "./user.interface";
+import bcrypt from "bcryptjs";
+import { Model, Schema, model } from "mongoose";
+import { IUser, IUserMethods } from "./user.interface";
 
-const userSchema = new Schema<IUser>(
+type UserModel = Model<IUser, {}, IUserMethods>;
+
+const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
     name: {
-      firstName: {
-        type: String,
-        required: true,
-      },
-      lastName: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
     },
     email: {
       type: String,
       required: true,
+      unique: true,
     },
     password: {
       type: String,
@@ -23,7 +21,6 @@ const userSchema = new Schema<IUser>(
     },
     profile: {
       type: String,
-      required: true,
       default: "https://i.ibb.co/dpqfqsX/icons8-avatar-80.png",
     },
   },
@@ -32,6 +29,20 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-const User = model<IUser>("User", userSchema);
+//password decoded
+userSchema.method("matchPassword", async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+});
+
+//password encoded
+userSchema.pre("save", async function (next) {
+  if (!this.isModified) {
+    next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+const User = model<IUser, UserModel>("User", userSchema);
 
 export default User;

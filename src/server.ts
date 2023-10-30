@@ -10,7 +10,7 @@ dotenv.config();
 async function run() {
   try {
     await mongoose.connect(process.env.MONGO_URI as string);
-    console.log(colors.bgGreen.bold("✅ Database connected successfully"));
+    console.log(colors.bgYellow.bold("✅ Database connected successfully"));
 
     //listening app
     app.listen(port, () => {
