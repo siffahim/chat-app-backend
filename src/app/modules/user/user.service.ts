@@ -2,7 +2,17 @@ import { generateToken } from "../../../config/generateToken";
 import { ILoginUser, IUser } from "./user.interface";
 import User from "./user.model";
 
-export const createUserToDB = async (payload: IUser) => {
+interface IUserResponse {
+  _id: string;
+  name: string;
+  password: string;
+  profile: string;
+  token: string;
+}
+
+export const createUserToDB = async (
+  payload: IUser
+): Promise<IUserResponse> => {
   const { name, email, password, profile } = payload;
 
   if (!name || !email || !password) {
@@ -23,10 +33,10 @@ export const createUserToDB = async (payload: IUser) => {
   });
 
   if (!createUser) {
-    throw new Error("Failed to create user");
+    throw new Error("Failed to create user!");
   } else {
     return {
-      _id: createUser._id,
+      _id: createUser._id.toString(),
       name: createUser.name,
       password: createUser.password,
       profile: createUser.profile,
@@ -35,14 +45,16 @@ export const createUserToDB = async (payload: IUser) => {
   }
 };
 
-export const loginUserToDB = async (payload: ILoginUser) => {
+export const loginUserToDB = async (
+  payload: ILoginUser
+): Promise<IUserResponse> => {
   const { email, password } = payload;
 
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
     return {
-      _id: user._id,
+      _id: user._id.toString(),
       name: user.name,
       password: user.password,
       profile: user.profile,
